@@ -6,6 +6,8 @@ export default async function DashboardPage() {
 
   if (!session?.user) redirect("/sign-in");
 
+  if (session.error === "RefreshTokenError") redirect("/sign-in")
+
   return (
     <div>
       <h1>Dashboard page</h1>
