@@ -34,7 +34,7 @@ declare module "@auth/core/jwt" {
     accessToken: string;
     expiresAt: number;
     refreshToken?: string;
-    error?: "RefreshTokenError"
+    error?: "RefreshTokenError";
   }
 }
 
@@ -106,8 +106,8 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: token.error,
         user: {
           ...session.user,
-          accessToken: token.accessToken as string,
-          refreshToken: token.refreshToken as string,
+          accessToken: token.accessToken,
+          refreshToken: token.refreshToken,
         },
       };
     },
