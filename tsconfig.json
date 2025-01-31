@@ -16,6 +16,10 @@
     "plugins": [
       {
         "name": "next"
+      },
+      {
+        "name": "@@no-co/graphqlsp",
+        "schema": "src/graphql/github.api.schema.graphql"
       }
     ],
     "paths": {

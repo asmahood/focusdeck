@@ -2,18 +2,19 @@ import { providerMap, signIn } from "@/auth";
 
 export default async function SignInPage() {
   return (
-    <div className="flex flex-col items-center justify-center h-screen w-screen">
-      <h1 className="text-4xl/8 font-bold text-slate-200 mb-8">
-        Welcome to Focus Deck
-      </h1>
+    <div className="flex h-screen w-screen flex-col items-center justify-center">
+      <h1 className="mb-8 text-4xl/8 font-bold text-slate-200">Welcome to Focus Deck</h1>
       {Object.values(providerMap).map((provider) => (
-        <form key={provider.id} action={async () => {
-          "use server"
-          await signIn(provider.id, { redirectTo: "/dashboard" }
-        )}}>
+        <form
+          key={provider.id}
+          action={async () => {
+            "use server";
+            await signIn(provider.id, { redirectTo: "/dashboard" });
+          }}
+        >
           <button
             type="submit"
-            className="flex flex-row bg-neutral-200 items-center justify-center p-2 rounded text-neutral-900"
+            className="flex flex-row items-center justify-center rounded bg-neutral-200 p-2 text-neutral-900"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -27,7 +28,6 @@ export default async function SignInPage() {
             </svg>
             Sign in with {provider.name}
           </button>
-
         </form>
       ))}
     </div>

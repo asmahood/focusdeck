@@ -4,7 +4,7 @@ const config: CodegenConfig = {
   schema: "src/graphql/github.api.schema.graphql",
   documents: ["src/**/*.{ts,tsx}"],
   generates: {
-    "./src/__generated__/": {
+    "./src/graphql/__generated__/": {
       preset: "client",
       plugins: [],
       presetConfig: {
@@ -12,7 +12,6 @@ const config: CodegenConfig = {
       },
     },
   },
-  ignoreNoDocuments: true,
 };
 
 export default config;

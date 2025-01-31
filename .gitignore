@@ -40,4 +40,7 @@ yarn-error.log*
 next-env.d.ts
 
 # GraphQL Codegen
-src/__generated__
+**/__generated__
+
+# VSCode settings
+.vscode

@@ -8,15 +8,15 @@ const httpLink = createHttpLink({
 
 const authLink = setContext(async (_, { headers }) => {
   const session = await auth();
-  
+
   const token = session?.user.accessToken ?? "";
 
   return {
     headers: {
       ...headers,
-      authorization: `bearer ${token}`
-    }
-  }
+      authorization: `bearer ${token}`,
+    },
+  };
 });
 
 const client = new ApolloClient({
