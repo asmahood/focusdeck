@@ -1,0 +1,67 @@
+name: Feature Request
+description: Suggest a new feature or enhancement for FocusDeck
+title: "[Feature]: "
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting a feature! Please fill out the sections below to help us understand your idea.
+
+  - type: textarea
+    id: use-case
+    attributes:
+      label: Use Case / Motivation
+      description: Describe the problem or use case this feature would address
+      placeholder: What problem does this solve? What would this enable you to do?
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposed-solution
+    attributes:
+      label: Proposed Solution
+      description: Describe the solution you'd like to see
+      placeholder: How would this feature work? What would the user experience be like?
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternative Approaches
+      description: Have you considered any alternative solutions or workarounds?
+      placeholder: Describe any alternative approaches you've thought about...
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: What would make this feature "complete"?
+      placeholder: |
+        - [ ] User can...
+        - [ ] System responds with...
+        - [ ] Edge cases are handled...
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Related Component
+      description: Which part of the dashboard would this affect?
+      options:
+        - Issues view
+        - Pull requests view
+        - Review requests view
+        - Notifications
+        - Authentication
+        - GraphQL/Data fetching
+        - UI/Styling
+        - New component/view
+        - Other
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, mockups, or screenshots about the feature request here
+      placeholder: Links to similar features, mockups, or examples from other apps...

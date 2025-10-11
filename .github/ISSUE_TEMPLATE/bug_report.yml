@@ -1,0 +1,95 @@
+name: Bug Report
+description: Report a bug or unexpected behavior in FocusDeck
+title: "[Bug]: "
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug! Please fill out the sections below to help us fix it.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Bug Description
+      description: A clear and concise description of what the bug is.
+      placeholder: Tell us what went wrong...
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps-to-reproduce
+    attributes:
+      label: Steps to Reproduce
+      description: Steps to reproduce the behavior
+      placeholder: |
+        1. Go to '...'
+        2. Click on '...'
+        3. Scroll down to '...'
+        4. See error
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected-behavior
+    attributes:
+      label: Expected Behavior
+      description: What did you expect to happen?
+      placeholder: Describe what should have happened...
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual-behavior
+    attributes:
+      label: Actual Behavior
+      description: What actually happened?
+      placeholder: Describe what actually happened...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Affected Component
+      description: Which part of the dashboard is affected?
+      options:
+        - Issues view
+        - Pull requests view
+        - Review requests view
+        - Notifications
+        - Authentication/Sign-in
+        - GraphQL/Data fetching
+        - UI/Styling
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: Please provide details about your environment
+      placeholder: |
+        - Browser: [e.g. Chrome 120, Firefox 121]
+        - OS: [e.g. Windows 11, macOS 14, Ubuntu 22.04]
+        - Node version (if relevant): [e.g. 20.10.0]
+      value: |
+        - Browser:
+        - OS:
+        - Node version:
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Error Logs or Screenshots
+      description: If applicable, add error logs, console output, or screenshots
+      placeholder: Paste error logs or drag and drop screenshots here
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context about the problem here

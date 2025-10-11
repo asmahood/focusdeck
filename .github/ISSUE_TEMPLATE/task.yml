@@ -1,0 +1,77 @@
+name: Task / Improvement
+description: Propose a general task, improvement, or refactoring
+title: "[Task]: "
+labels: ["task"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for proposing a task or improvement! Please provide details below.
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Task Description
+      description: Describe the task, improvement, or refactoring you'd like to see
+      placeholder: What needs to be done and why?
+    validations:
+      required: true
+
+  - type: dropdown
+    id: task-type
+    attributes:
+      label: Task Type
+      description: What type of task is this?
+      options:
+        - Refactoring
+        - Code quality improvement
+        - Performance optimization
+        - Documentation
+        - Testing
+        - Dependency update
+        - Technical debt
+        - Other
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Related Component
+      description: Which part of the codebase does this affect?
+      options:
+        - Issues view
+        - Pull requests view
+        - Review requests view
+        - Notifications
+        - Authentication
+        - GraphQL/Data fetching
+        - UI/Styling
+        - Build/Configuration
+        - Documentation
+        - Testing
+        - Multiple components
+        - Other
+
+  - type: textarea
+    id: details
+    attributes:
+      label: Implementation Details
+      description: Any specific implementation details or approach?
+      placeholder: Describe the proposed approach, files to modify, etc.
+
+  - type: textarea
+    id: acceptance-criteria
+    attributes:
+      label: Acceptance Criteria
+      description: How will we know this task is complete?
+      placeholder: |
+        - [ ] Code is refactored to...
+        - [ ] Documentation updated...
+        - [ ] Tests added/updated...
+
+  - type: textarea
+    id: additional-context
+    attributes:
+      label: Additional Context
+      description: Add any other context, links, or references

@@ -1,0 +1,54 @@
+name: Question / Discussion
+description: Ask a question or start a discussion about FocusDeck
+title: "[Question]: "
+labels: ["question"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Have a question or want to discuss something? We're here to help!
+
+  - type: textarea
+    id: question
+    attributes:
+      label: Your Question
+      description: What would you like to know or discuss?
+      placeholder: Ask your question here...
+    validations:
+      required: true
+
+  - type: dropdown
+    id: topic
+    attributes:
+      label: Topic
+      description: What is your question about?
+      options:
+        - Usage / How-to
+        - Architecture / Design
+        - GraphQL / API
+        - Authentication
+        - Development setup
+        - Deployment
+        - Contributing
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: context
+    attributes:
+      label: Additional Context
+      description: Provide any relevant context, what you've tried, or links to related documentation
+      placeholder: |
+        - What have you already tried?
+        - Links to relevant docs or issues
+        - Any error messages or unexpected behavior
+
+  - type: checkboxes
+    id: documentation-check
+    attributes:
+      label: Documentation
+      description: Before asking, please check if the answer might be in the documentation
+      options:
+        - label: I have checked the README and CLAUDE.md
+        - label: I have searched existing issues and discussions
