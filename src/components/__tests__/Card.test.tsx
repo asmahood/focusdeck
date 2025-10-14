@@ -12,7 +12,6 @@ import { CardData } from "@/types/card";
 describe("Card", () => {
   const mockCardData: CardData = {
     id: "1",
-    type: "issue",
     number: 123,
     title: "Fix authentication bug in sign-in flow",
     url: "https://github.com/owner/repo/issues/123",
