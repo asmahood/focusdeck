@@ -10,15 +10,6 @@ declare module "next-auth" {
     error?: "RefreshTokenError";
 
     user: {
-      /** The user's Github access token. */
-      accessToken: string;
-
-      /** The refresh token for this Github access token */
-      refreshToken: string;
-
-      /** The time that the access token will expire (in seconds) */
-      expiresAt: number;
-
       /**
        * By default, TypeScript merges new interface properties and overwrites existing ones.
        * In this case, the default session user properties will be overwritten,
@@ -38,7 +29,15 @@ declare module "@auth/core/jwt" {
   }
 }
 
-const providers: Provider[] = [Github];
+const providers: Provider[] = [
+  Github({
+    authorization: {
+      params: {
+        scope: "read:user user:email repo read:org notifications",
+      },
+    },
+  }),
+];
 
 export const providerMap = providers.map((provider) => {
   if (typeof provider === "function") {
@@ -91,7 +90,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             ...token,
             accessToken: newTokens.get("access_token")!,
             refreshToken: newTokens.get("refresh_token") ?? token.refreshToken,
-            expiresIn: newTokens.get("expires_in")!,
+            expiresAt: Math.floor(Date.now() / 1000) + Number(newTokens.get("expires_in")!),
           };
         } catch (err) {
           console.error("Error refreshing access_token", err);
@@ -106,8 +105,6 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: token.error,
         user: {
           ...session.user,
-          accessToken: token.accessToken,
-          refreshToken: token.refreshToken,
         },
       };
     },
