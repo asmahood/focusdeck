@@ -39,9 +39,33 @@ npm run codegen:watch       # Watch mode for GraphQL codegen
 
 - **NextAuth.js v5** handles GitHub OAuth with custom token refresh logic
 - Auth configuration: `src/auth.ts`
-- Session includes `accessToken`, `refreshToken`, and `expiresAt` for GitHub API access
+- **Security**: Access tokens are stored exclusively in JWT tokens (server-side only) and are NOT exposed in the session object
 - Token refresh is handled automatically in the JWT callback when tokens expire
 - Custom sign-in page at `/sign-in`
+- Middleware at `middleware.ts` protects authenticated routes and handles token refresh errors
+
+#### Accessing Tokens Server-Side
+
+To access GitHub tokens in server components or API routes:
+
+```typescript
+import { getToken } from "next-auth/jwt";
+import { cookies } from "next/headers";
+
+const cookieHeader = (await cookies()).toString();
+const token = await getToken({
+  req: {
+    headers: {
+      cookie: cookieHeader,
+    },
+  } as Parameters<typeof getToken>[0]["req"],
+});
+
+const accessToken = token?.accessToken; // GitHub access token
+const refreshToken = token?.refreshToken; // GitHub refresh token
+```
+
+**Important**: Tokens are never exposed to client-side code for security. The GraphQL client in `src/graphql/client.ts` demonstrates the correct pattern for server-side token retrieval.
 
 ### GraphQL Integration
 
