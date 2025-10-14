@@ -12,6 +12,10 @@ interface SignInFormProps {
   provider: Provider;
 }
 
+/**
+ * SubmitButton must be rendered inside a parent <form> element with a server action
+ * for useFormStatus to work correctly.
+ */
 function SubmitButton({ provider }: { provider: Provider }) {
   const { pending } = useFormStatus();
 
