@@ -3,6 +3,7 @@ import { AppError } from "@/types/errors";
 
 export interface FetchResult {
   items: CardData[];
+  totalCount: number;
   pageInfo: {
     hasNextPage: boolean;
     endCursor: string | null;

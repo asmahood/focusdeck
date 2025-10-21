@@ -1,6 +1,10 @@
 export function SkeletonCard() {
   return (
-    <div className="animate-pulse rounded-md border border-neutral-800 bg-neutral-800 p-3">
+    <div
+      className="animate-pulse rounded-md border border-neutral-800 bg-neutral-800 p-3"
+      role="status"
+      aria-label="Loading issue data"
+    >
       <div className="flex flex-col gap-2">
         {/* Status Badge */}
         <div className="h-5 w-16 rounded-md bg-neutral-700" />

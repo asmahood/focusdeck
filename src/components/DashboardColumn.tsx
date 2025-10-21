@@ -22,7 +22,7 @@ export function DashboardColumn({
   columnType,
 }: DashboardColumnProps) {
   // TODO: Make this dynamic based on columnType
-  const { items, pageInfo, isLoading, error, loadMore } = useIssuesCreated({
+  const { items, totalCount, pageInfo, isLoading, error, loadMore } = useIssuesCreated({
     initialData,
   });
 
@@ -66,7 +66,7 @@ export function DashboardColumn({
   }
 
   return (
-    <CardColumn title={title} count={items.length}>
+    <CardColumn title={title} count={totalCount}>
       {items.map((card, index) => (
         <div
           key={card.id}
@@ -88,7 +88,9 @@ export function DashboardColumn({
               </div>
             </>
           ) : (
-            <div className="text-center text-xs text-neutral-500">Scroll for more</div>
+            <div role="status" aria-live="polite" className="text-center text-xs text-neutral-500">
+              Scroll for more
+            </div>
           )}
         </div>
       )}

@@ -31,6 +31,7 @@ interface UseIssuesCreatedProps {
  */
 export function useIssuesCreated({ initialData }: UseIssuesCreatedProps) {
   const [items, setItems] = useState<CardData[]>(initialData.items);
+  const [totalCount, setTotalCount] = useState(initialData.totalCount);
   const [pageInfo, setPageInfo] = useState(initialData.pageInfo);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
@@ -84,6 +85,7 @@ export function useIssuesCreated({ initialData }: UseIssuesCreatedProps) {
       }
 
       setItems((prev) => [...prev, ...result.items]);
+      setTotalCount(result.totalCount);
       setPageInfo(result.pageInfo);
     } catch (err) {
       // Don't set error if request was aborted
@@ -117,11 +119,13 @@ export function useIssuesCreated({ initialData }: UseIssuesCreatedProps) {
   return useMemo(
     () => ({
       items,
+      totalCount,
       pageInfo,
       isLoading,
       error,
       loadMore,
     }),
-    [items, pageInfo, isLoading, error, loadMore],
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadMore is stable via useCallback, excluding to prevent circular dependency
+    [items, totalCount, pageInfo, isLoading, error],
   );
 }

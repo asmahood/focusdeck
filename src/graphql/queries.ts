@@ -10,6 +10,7 @@ export const GET_ISSUES_CREATED = gql(`
         states: OPEN
         orderBy: { field: CREATED_AT, direction: DESC }
       ) {
+        totalCount
         pageInfo {
           hasNextPage
           endCursor

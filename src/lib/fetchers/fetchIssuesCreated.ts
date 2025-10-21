@@ -26,6 +26,7 @@ export async function fetchIssuesCreated(options: FetchOptions = {}): Promise<Fe
 
     return {
       items,
+      totalCount: data.viewer.issues.totalCount,
       pageInfo: {
         hasNextPage: data.viewer.issues.pageInfo.hasNextPage,
         endCursor: data.viewer.issues.pageInfo.endCursor ?? null,

@@ -61,17 +61,33 @@ function sanitize(data: unknown): unknown {
  */
 function writeLog(entry: LogEntry): void {
   const sanitized = sanitize(entry);
-  const logString = JSON.stringify(sanitized) + "\n";
+  const logString = JSON.stringify(sanitized);
 
-  // Write errors and warnings to stderr, everything else to stdout
-  if (entry.level === LogLevel.ERROR || entry.level === LogLevel.WARN) {
-    process.stderr.write(logString);
-  } else {
-    // Only write debug logs in development
-    if (entry.level === LogLevel.DEBUG && process.env.NODE_ENV !== "development") {
-      return;
+  // Fallback to console if stdout/stderr are not available (Edge Runtime)
+  const isNodeRuntime = typeof process !== "undefined" && process.stdout && process.stderr;
+
+  if (isNodeRuntime) {
+    // Write errors and warnings to stderr, everything else to stdout
+    if (entry.level === LogLevel.ERROR || entry.level === LogLevel.WARN) {
+      process.stderr.write(logString + "\n");
+    } else {
+      // Only write debug logs in development
+      if (entry.level === LogLevel.DEBUG && process.env.NODE_ENV !== "development") {
+        return;
+      }
+      process.stdout.write(logString + "\n");
     }
-    process.stdout.write(logString);
+  } else {
+    // Fallback for Edge Runtime - use console
+    if (entry.level === LogLevel.ERROR) {
+      console.error(logString);
+    } else if (entry.level === LogLevel.WARN) {
+      console.warn(logString);
+    } else if (entry.level === LogLevel.DEBUG && process.env.NODE_ENV === "development") {
+      console.debug(logString);
+    } else {
+      console.log(logString);
+    }
   }
 }
 

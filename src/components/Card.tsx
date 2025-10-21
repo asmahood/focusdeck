@@ -36,6 +36,10 @@ const STATUS_ICONS = {
   ),
 };
 
+function isValidHexColor(color: string): boolean {
+  return /^[0-9A-Fa-f]{6}$/.test(color);
+}
+
 function getRelativeTime(dateString: string): string {
   const date = new Date(dateString);
   const now = new Date();
@@ -61,6 +65,7 @@ export function Card({ data }: CardProps) {
   return (
     <a
       href={data.url}
+      aria-label={`Issue #${data.number}: ${data.title} in ${data.repository.owner}/${data.repository.name}`}
       className="group block rounded-md border border-neutral-800 bg-neutral-800 p-3 transition-all duration-200 hover:scale-[1.01] hover:border-neutral-700 hover:bg-neutral-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 focus:ring-offset-neutral-950"
       target="_blank"
       rel="noopener noreferrer"
@@ -74,18 +79,22 @@ export function Card({ data }: CardProps) {
             {STATUS_ICONS[data.status]}
             {data.status}
           </span>
-          {visibleLabels.map((label) => (
-            <span
-              key={label.name}
-              className="inline-flex items-center rounded-md border border-neutral-700 px-1.5 py-0.5 text-xs font-medium text-neutral-300"
-              style={{
-                backgroundColor: `${label.color}20`,
-                borderColor: `${label.color}40`,
-              }}
-            >
-              {label.name}
-            </span>
-          ))}
+          {visibleLabels.map((label) => {
+            const safeColor = isValidHexColor(label.color) ? `#${label.color}` : "#6B7280";
+            return (
+              <span
+                key={label.name}
+                className="inline-flex items-center rounded-md border px-1.5 py-0.5 text-xs font-medium"
+                style={{
+                  backgroundColor: `${safeColor}20`,
+                  borderColor: `${safeColor}80`,
+                  color: safeColor,
+                }}
+              >
+                {label.name}
+              </span>
+            );
+          })}
           {remainingLabels > 0 && (
             <span className="inline-flex items-center rounded-md border border-neutral-700 bg-neutral-700/50 px-1.5 py-0.5 text-xs font-medium text-neutral-400">
               +{remainingLabels}
