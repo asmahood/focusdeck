@@ -58,6 +58,47 @@ export const githubGraphQLHandlers = [
     });
   }),
 
+  // Mock issues created query (for infinite scroll)
+  graphql.query("GetIssuesCreated", ({ variables }) => {
+    const { cursor, first = 20 } = variables;
+
+    // Generate mock issues
+    const mockIssues = Array.from({ length: first as number }, (_, i) => ({
+      id: `issue-${cursor ? "page2-" : ""}${i}`,
+      number: i + 1,
+      title: `Test Issue ${i + 1}`,
+      url: `https://github.com/testuser/test-repo/issues/${i + 1}`,
+      state: "OPEN",
+      createdAt: new Date(Date.now() - i * 86400000).toISOString(), // Stagger dates
+      repository: {
+        id: "repo-1",
+        name: "test-repo",
+        owner: { login: "testuser" },
+      },
+      labels: {
+        nodes: [
+          { id: "label-1", name: "bug", color: "d73a4a" },
+          { id: "label-2", name: "enhancement", color: "a2eeef" },
+        ],
+      },
+      comments: { totalCount: i % 5 },
+    }));
+
+    return HttpResponse.json({
+      data: {
+        viewer: {
+          issues: {
+            pageInfo: {
+              hasNextPage: cursor === null || cursor === undefined,
+              endCursor: cursor === null || cursor === undefined ? "cursor-page2" : null,
+            },
+            edges: mockIssues.map((issue) => ({ node: issue })),
+          },
+        },
+      },
+    });
+  }),
+
   // Mock pull requests query
   graphql.query("GetUserPullRequests", () => {
     return HttpResponse.json({
