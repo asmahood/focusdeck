@@ -1,6 +1,7 @@
 import NextAuth, { type DefaultSession } from "next-auth";
 import { Provider } from "next-auth/providers";
 import Github from "next-auth/providers/github";
+import { logger } from "@/lib/logging/logger";
 
 declare module "next-auth" {
   /**
@@ -93,7 +94,9 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
             expiresAt: Math.floor(Date.now() / 1000) + Number(newTokens.get("expires_in")!),
           };
         } catch (err) {
-          console.error("Error refreshing access_token", err);
+          logger.error("Error refreshing access_token", {
+            error: err instanceof Error ? err.message : String(err),
+          });
           token.error = "RefreshTokenError";
           return token;
         }

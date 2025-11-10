@@ -3,6 +3,7 @@ import { setContext } from "@apollo/client/link/context";
 import { onError } from "@apollo/client/link/error";
 import { getToken } from "next-auth/jwt";
 import { cookies } from "next/headers";
+import { logger } from "@/lib/logging/logger";
 
 const httpLink = createHttpLink({
   uri: "https://api.github.com/graphql",
@@ -19,6 +20,7 @@ const authLink = setContext(async (_, { headers }) => {
         cookie: cookieHeader,
       },
     } as Parameters<typeof getToken>[0]["req"],
+    secret: process.env.AUTH_SECRET,
   });
 
   if (!token?.accessToken) {
@@ -41,21 +43,32 @@ const authLink = setContext(async (_, { headers }) => {
 const errorLink = onError(({ graphQLErrors, networkError }) => {
   if (graphQLErrors) {
     for (const err of graphQLErrors) {
-      console.error(`[GraphQL error]: Message: ${err.message}, Location: ${err.locations}, Path: ${err.path}`);
+      logger.error("GraphQL error", {
+        message: err.message,
+        locations: err.locations,
+        path: err.path,
+        extensions: err.extensions,
+      });
 
       // Handle authentication errors
       if (err.extensions?.code === "UNAUTHENTICATED") {
-        console.error("GraphQL authentication error - token may be invalid or expired");
+        logger.warn("Authentication error detected", {
+          code: err.extensions.code,
+        });
       }
     }
   }
 
   if (networkError) {
-    console.error(`[Network error]: ${networkError.message}`);
+    logger.error("Network error", {
+      message: networkError.message,
+      name: networkError.name,
+      statusCode: "statusCode" in networkError ? networkError.statusCode : undefined,
+    });
 
-    // Handle 401 Unauthorized
+    // Handle 401 Unauthorized - this means the token is invalid/expired
     if ("statusCode" in networkError && networkError.statusCode === 401) {
-      console.error("Received 401 Unauthorized - token may be expired or invalid");
+      logger.warn("401 Unauthorized - authentication required");
     }
   }
 });

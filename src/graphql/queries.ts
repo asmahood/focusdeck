@@ -1,15 +1,23 @@
 import { gql } from "./__generated__";
 
-export const getCreatedIssuesQuery = gql(`
-  query GetCreatedIssues {
+// Issues Created query with pagination support
+export const GET_ISSUES_CREATED = gql(`
+  query GetIssuesCreated($cursor: String, $first: Int = 20) {
     viewer {
-      issues(first: 20, states: OPEN, orderBy: { field: CREATED_AT, direction: DESC }) {
+      issues(
+        first: $first
+        after: $cursor
+        states: OPEN
+        orderBy: { field: CREATED_AT, direction: DESC }
+      ) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
         edges {
           node {
-            title
-            repository {
-              name
-            }
+            ...IssueFields
           }
         }
       }
