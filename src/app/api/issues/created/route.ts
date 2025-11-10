@@ -59,7 +59,7 @@ export async function GET(request: NextRequest) {
         {
           status: 429,
           headers: {
-            "Retry-After": rateLimitResult.retryAfter!.toString(),
+            "Retry-After": (rateLimitResult.retryAfter ?? 0).toString(),
             "X-RateLimit-Limit": rateLimitResult.limit.toString(),
             "X-RateLimit-Remaining": rateLimitResult.remaining.toString(),
             "X-RateLimit-Reset": rateLimitResult.reset.toString(),

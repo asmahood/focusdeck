@@ -38,13 +38,32 @@ function sanitize(data: unknown): unknown {
   }
 
   const sanitized: Record<string, unknown> = {};
-  const sensitiveKeys = ["accesstoken", "refreshtoken", "password", "secret", "authorization", "cookie", "token"];
+
+  // Exact match sensitive keys (lowercase)
+  const exactMatchKeys = new Set([
+    "accesstoken",
+    "access_token",
+    "refreshtoken",
+    "refresh_token",
+    "password",
+    "secret",
+    "authorization",
+    "cookie",
+    "token",
+    "apikey",
+    "api_key",
+  ]);
+
+  // Patterns for suffix matching (more precise than substring matching)
+  const sensitiveSuffixes = ["_token", "_secret", "_key", "_password"];
 
   for (const [key, value] of Object.entries(data)) {
     const lowerKey = key.toLowerCase();
 
-    // Remove sensitive fields
-    if (sensitiveKeys.some((sensitive) => lowerKey.includes(sensitive))) {
+    // Check exact match or suffix match
+    const isSensitive = exactMatchKeys.has(lowerKey) || sensitiveSuffixes.some((suffix) => lowerKey.endsWith(suffix));
+
+    if (isSensitive) {
       sanitized[key] = "[REDACTED]";
     } else if (typeof value === "object") {
       sanitized[key] = sanitize(value);
@@ -63,7 +82,8 @@ function writeLog(entry: LogEntry): void {
   const sanitized = sanitize(entry);
   const logString = JSON.stringify(sanitized);
 
-  // Fallback to console if stdout/stderr are not available (Edge Runtime)
+  // Check environment before runtime check to avoid accessing process in Edge Runtime
+  const isDevelopment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
   const isNodeRuntime = typeof process !== "undefined" && process.stdout && process.stderr;
 
   if (isNodeRuntime) {
@@ -72,7 +92,7 @@ function writeLog(entry: LogEntry): void {
       process.stderr.write(logString + "\n");
     } else {
       // Only write debug logs in development
-      if (entry.level === LogLevel.DEBUG && process.env.NODE_ENV !== "development") {
+      if (entry.level === LogLevel.DEBUG && !isDevelopment) {
         return;
       }
       process.stdout.write(logString + "\n");
@@ -83,7 +103,7 @@ function writeLog(entry: LogEntry): void {
       console.error(logString);
     } else if (entry.level === LogLevel.WARN) {
       console.warn(logString);
-    } else if (entry.level === LogLevel.DEBUG && process.env.NODE_ENV === "development") {
+    } else if (entry.level === LogLevel.DEBUG && isDevelopment) {
       console.debug(logString);
     } else {
       console.log(logString);
