@@ -7,6 +7,7 @@ import { EmptyState } from "./EmptyState";
 import { SkeletonCard } from "./SkeletonCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useIssuesCreated } from "@/hooks/useIssuesCreated";
+import { useIssuesAssigned } from "@/hooks/useIssuesAssigned";
 import { FetchResult } from "@/lib/fetchers/types";
 
 interface DashboardColumnProps {
@@ -15,14 +16,15 @@ interface DashboardColumnProps {
   columnType: "issues-created" | "issues-assigned" | "prs" | "reviews";
 }
 
-export function DashboardColumn({
-  title,
-  initialData,
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  columnType,
-}: DashboardColumnProps) {
-  // TODO: Make this dynamic based on columnType
-  const { items, totalCount, pageInfo, isLoading, error, loadMore } = useIssuesCreated({
+export function DashboardColumn({ title, initialData, columnType }: DashboardColumnProps) {
+  // Hook selection based on column type
+  const hookMap = {
+    "issues-created": useIssuesCreated,
+    "issues-assigned": useIssuesAssigned,
+  };
+
+  const useColumnData = hookMap[columnType as keyof typeof hookMap] || useIssuesCreated;
+  const { items, totalCount, pageInfo, isLoading, error, loadMore } = useColumnData({
     initialData,
   });
 

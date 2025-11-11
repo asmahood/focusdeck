@@ -1,14 +1,28 @@
 import { DashboardColumn } from "@/components";
-import { fetchIssuesCreated } from "@/lib/fetchers";
-import { mockIssuesAssigned, mockPullRequests, mockReviewRequests } from "@/data/mockCards";
+import { fetchIssuesCreated, fetchIssuesAssigned } from "@/lib/fetchers";
+import { mockPullRequests, mockReviewRequests } from "@/data/mockCards";
 import { FetchResult } from "@/lib/fetchers/types";
 
 export default async function DashboardPage() {
-  // Fetch initial data server-side
-  const issuesCreatedData = await fetchIssuesCreated({ first: 20 });
+  // Fetch initial data server-side with error handling
+  const [issuesCreatedData, issuesAssignedData] = await Promise.allSettled([
+    fetchIssuesCreated({ first: 20 }),
+    fetchIssuesAssigned({ first: 20 }),
+  ]).then((results) => {
+    const emptyResult: FetchResult = {
+      items: [],
+      totalCount: 0,
+      pageInfo: { hasNextPage: false, endCursor: null },
+    };
+
+    return [
+      results[0].status === "fulfilled" ? results[0].value : emptyResult,
+      results[1].status === "fulfilled" ? results[1].value : emptyResult,
+    ];
+  });
 
   // Convert mock data to FetchResult format for other columns (temporary)
-  const mockDataAsResult = (items: typeof mockIssuesAssigned): FetchResult => ({
+  const mockDataAsResult = (items: typeof mockPullRequests): FetchResult => ({
     items,
     totalCount: items.length,
     pageInfo: { hasNextPage: false, endCursor: null },
@@ -27,11 +41,7 @@ export default async function DashboardPage() {
 
         {/* Issues Assigned Column */}
         <div className="snap-item">
-          <DashboardColumn
-            title="Issues Assigned"
-            initialData={mockDataAsResult(mockIssuesAssigned)}
-            columnType="issues-assigned"
-          />
+          <DashboardColumn title="Issues Assigned" initialData={issuesAssignedData} columnType="issues-assigned" />
         </div>
 
         {/* Pull Requests Column */}
