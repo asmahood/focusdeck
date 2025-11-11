@@ -24,3 +24,28 @@ export const GET_ISSUES_CREATED = gql(`
     }
   }
 `);
+
+// Issues Assigned query using GitHub Search API
+export const GET_ISSUES_ASSIGNED = gql(`
+  query GetIssuesAssigned($cursor: String, $first: Int = 20) {
+    search(
+      query: "is:issue is:open assignee:@me"
+      type: ISSUE
+      first: $first
+      after: $cursor
+    ) {
+      issueCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          ... on Issue {
+            ...IssueFields
+          }
+        }
+      }
+    }
+  }
+`);

@@ -82,32 +82,21 @@ function writeLog(entry: LogEntry): void {
   const sanitized = sanitize(entry);
   const logString = JSON.stringify(sanitized);
 
-  // Check environment before runtime check to avoid accessing process in Edge Runtime
   const isDevelopment = typeof process !== "undefined" && process.env?.NODE_ENV === "development";
-  const isNodeRuntime = typeof process !== "undefined" && process.stdout && process.stderr;
 
-  if (isNodeRuntime) {
-    // Write errors and warnings to stderr, everything else to stdout
-    if (entry.level === LogLevel.ERROR || entry.level === LogLevel.WARN) {
-      process.stderr.write(logString + "\n");
-    } else {
-      // Only write debug logs in development
-      if (entry.level === LogLevel.DEBUG && !isDevelopment) {
-        return;
-      }
-      process.stdout.write(logString + "\n");
+  // Use console methods for all runtimes (works in both Node.js and Edge Runtime)
+  // Vercel and other platforms capture console output for structured logging
+  if (entry.level === LogLevel.ERROR) {
+    console.error(logString);
+  } else if (entry.level === LogLevel.WARN) {
+    console.warn(logString);
+  } else if (entry.level === LogLevel.DEBUG) {
+    // Only write debug logs in development
+    if (isDevelopment) {
+      console.debug(logString);
     }
   } else {
-    // Fallback for Edge Runtime - use console
-    if (entry.level === LogLevel.ERROR) {
-      console.error(logString);
-    } else if (entry.level === LogLevel.WARN) {
-      console.warn(logString);
-    } else if (entry.level === LogLevel.DEBUG && isDevelopment) {
-      console.debug(logString);
-    } else {
-      console.log(logString);
-    }
+    console.log(logString);
   }
 }
 
