@@ -63,11 +63,17 @@ export function handleGraphQLError(error: unknown): never {
 
         if (retryAfterHeader) {
           // Secondary rate limit with explicit retry-after
-          retryAfter = parseInt(retryAfterHeader, 10);
+          const parsedRetryAfter = parseInt(retryAfterHeader, 10);
+          if (!isNaN(parsedRetryAfter)) {
+            retryAfter = parsedRetryAfter;
+          }
         } else if (resetHeader) {
           // Primary rate limit - calculate seconds until reset
-          const resetTime = parseInt(resetHeader, 10) * 1000;
-          retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+          const parsedReset = parseInt(resetHeader, 10);
+          if (!isNaN(parsedReset)) {
+            const resetTime = parsedReset * 1000;
+            retryAfter = Math.ceil((resetTime - Date.now()) / 1000);
+          }
         }
 
         throw createAppError("RATE_LIMIT", "Rate limit exceeded", true, retryAfter);
