@@ -49,3 +49,28 @@ export const GET_ISSUES_ASSIGNED = gql(`
     }
   }
 `);
+
+// Pull Requests Created query with pagination support
+export const GET_PULL_REQUESTS_CREATED = gql(`
+  query GetPullRequestsCreated($cursor: String, $first: Int = 20) {
+    viewer {
+      pullRequests(
+        first: $first
+        after: $cursor
+        states: OPEN
+        orderBy: { field: CREATED_AT, direction: DESC }
+      ) {
+        totalCount
+        pageInfo {
+          hasNextPage
+          endCursor
+        }
+        edges {
+          node {
+            ...PullRequestFields
+          }
+        }
+      }
+    }
+  }
+`);
