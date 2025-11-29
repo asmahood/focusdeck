@@ -8,6 +8,7 @@ import { SkeletonCard } from "./SkeletonCard";
 import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useIssuesCreated } from "@/hooks/useIssuesCreated";
 import { useIssuesAssigned } from "@/hooks/useIssuesAssigned";
+import { usePullRequests } from "@/hooks/usePullRequests";
 import { FetchResult } from "@/lib/fetchers/types";
 
 interface DashboardColumnProps {
@@ -21,6 +22,7 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
   const hookMap = {
     "issues-created": useIssuesCreated,
     "issues-assigned": useIssuesAssigned,
+    prs: usePullRequests,
   };
 
   const useColumnData = hookMap[columnType as keyof typeof hookMap] || useIssuesCreated;
@@ -51,9 +53,32 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
 
   // Show empty state if no items, no error, and not loading
   if (items.length === 0 && !error && !isLoading) {
+    const getEmptyStateMessage = () => {
+      switch (columnType) {
+        case "issues-created":
+          return {
+            title: "No open issues found",
+            description: "Create your first issue to get started",
+          };
+        case "issues-assigned":
+          return {
+            title: "No assigned issues found",
+            description: "Issues assigned to you will appear here",
+          };
+        case "prs":
+          return {
+            title: "No open pull requests found",
+            description: "Create your first pull request to get started",
+          };
+        default:
+          return { title: "No items found", description: "" };
+      }
+    };
+
+    const emptyMessage = getEmptyStateMessage();
     return (
       <CardColumn title={title} count={0}>
-        <EmptyState title="No open issues found" description="Create your first issue to get started" />
+        <EmptyState title={emptyMessage.title} description={emptyMessage.description} />
       </CardColumn>
     );
   }

@@ -1,2 +1,3 @@
 export { issueToCard } from "./issueToCard";
-export type { Transformer, IssueNode } from "./types";
+export { pullRequestToCard } from "./pullRequestToCard";
+export type { Transformer, IssueNode, PullRequestNode } from "./types";
