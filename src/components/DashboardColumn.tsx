@@ -9,6 +9,7 @@ import { useInfiniteScroll } from "@/hooks/useInfiniteScroll";
 import { useIssuesCreated } from "@/hooks/useIssuesCreated";
 import { useIssuesAssigned } from "@/hooks/useIssuesAssigned";
 import { usePullRequests } from "@/hooks/usePullRequests";
+import { useReviewRequests } from "@/hooks/useReviewRequests";
 import { FetchResult } from "@/lib/fetchers/types";
 
 interface DashboardColumnProps {
@@ -23,6 +24,7 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
     "issues-created": useIssuesCreated,
     "issues-assigned": useIssuesAssigned,
     prs: usePullRequests,
+    reviews: useReviewRequests,
   };
 
   const useColumnData = hookMap[columnType as keyof typeof hookMap] || useIssuesCreated;
@@ -69,6 +71,11 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
           return {
             title: "No open pull requests found",
             description: "Create your first pull request to get started",
+          };
+        case "reviews":
+          return {
+            title: "No review requests found",
+            description: "Pull requests awaiting your review will appear here",
           };
         default:
           return { title: "No items found", description: "" };
