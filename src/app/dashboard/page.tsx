@@ -1,14 +1,14 @@
 import { DashboardColumn } from "@/components";
-import { fetchIssuesCreated, fetchIssuesAssigned, fetchPullRequests } from "@/lib/fetchers";
-import { mockReviewRequests } from "@/data/mockCards";
+import { fetchIssuesCreated, fetchIssuesAssigned, fetchPullRequests, fetchReviewRequests } from "@/lib/fetchers";
 import { FetchResult } from "@/lib/fetchers/types";
 
 export default async function DashboardPage() {
   // Fetch initial data server-side with error handling
-  const [issuesCreatedData, issuesAssignedData, pullRequestsData] = await Promise.allSettled([
+  const [issuesCreatedData, issuesAssignedData, pullRequestsData, reviewRequestsData] = await Promise.allSettled([
     fetchIssuesCreated({ first: 20 }),
     fetchIssuesAssigned({ first: 20 }),
     fetchPullRequests({ first: 20 }),
+    fetchReviewRequests({ first: 20 }),
   ]).then((results) => {
     const emptyResult: FetchResult = {
       items: [],
@@ -20,14 +20,8 @@ export default async function DashboardPage() {
       results[0].status === "fulfilled" ? results[0].value : emptyResult,
       results[1].status === "fulfilled" ? results[1].value : emptyResult,
       results[2].status === "fulfilled" ? results[2].value : emptyResult,
+      results[3].status === "fulfilled" ? results[3].value : emptyResult,
     ];
-  });
-
-  // Convert mock data to FetchResult format for remaining column (temporary)
-  const mockDataAsResult = (items: typeof mockReviewRequests): FetchResult => ({
-    items,
-    totalCount: items.length,
-    pageInfo: { hasNextPage: false, endCursor: null },
   });
 
   return (
@@ -53,11 +47,7 @@ export default async function DashboardPage() {
 
         {/* Review Requests Column */}
         <div className="snap-item">
-          <DashboardColumn
-            title="Review Requests"
-            initialData={mockDataAsResult(mockReviewRequests)}
-            columnType="reviews"
-          />
+          <DashboardColumn title="Review Requests" initialData={reviewRequestsData} columnType="reviews" />
         </div>
       </div>
     </div>

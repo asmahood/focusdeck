@@ -74,3 +74,28 @@ export const GET_PULL_REQUESTS_CREATED = gql(`
     }
   }
 `);
+
+// Review Requests query using GitHub Search API
+export const GET_REVIEW_REQUESTS = gql(`
+  query GetReviewRequests($cursor: String, $first: Int = 20) {
+    search(
+      query: "is:pr is:open review-requested:@me"
+      type: ISSUE
+      first: $first
+      after: $cursor
+    ) {
+      issueCount
+      pageInfo {
+        hasNextPage
+        endCursor
+      }
+      edges {
+        node {
+          ... on PullRequest {
+            ...PullRequestFields
+          }
+        }
+      }
+    }
+  }
+`);
