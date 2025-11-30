@@ -27,7 +27,7 @@ export async function fetchReviewRequests(options: FetchOptions = {}): Promise<F
 
     return {
       items,
-      totalCount: data.search.issueCount,
+      totalCount: data.search.issueCount ?? 0,
       pageInfo: {
         hasNextPage: data.search.pageInfo.hasNextPage,
         endCursor: data.search.pageInfo.endCursor ?? null,
