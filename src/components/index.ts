@@ -5,6 +5,12 @@ export { SkeletonCard } from "./SkeletonCard";
 export { EmptyState } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
 
+// Dashboard header components
+export { DashboardHeader } from "./DashboardHeader";
+export { SettingsDropdown } from "./SettingsDropdown";
+export { UserAvatar } from "./UserAvatar";
+export { InstallationStatus } from "./InstallationStatus";
+
 // Sign-in components
 export { SignInButton } from "./SignInButton";
 export { SignInCard } from "./SignInCard";

@@ -17,6 +17,8 @@ declare module "next-auth" {
        * with the new ones defined above. To keep the default session user properties,
        * you need to add them back into the newly declared interface.
        */
+      /** GitHub user ID (from providerAccountId) */
+      id?: string;
     } & DefaultSession["user"];
   }
 }
@@ -27,6 +29,7 @@ declare module "@auth/core/jwt" {
     expiresAt: number;
     refreshToken?: string;
     error?: "RefreshTokenError";
+    githubUserId?: string;
   }
 }
 
@@ -63,6 +66,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
           accessToken: account.access_token!,
           refreshToken: account.refresh_token,
           expiresAt: account.expires_at!,
+          githubUserId: account.providerAccountId,
         };
       } else if (Date.now() < token.expiresAt * 1000) {
         // Subsequent logins, `access-token` is still valid
@@ -108,6 +112,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         error: token.error,
         user: {
           ...session.user,
+          id: token.githubUserId,
         },
       };
     },

@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 export default auth((req) => {
   const isAuthenticated = !!req.auth;
   const isAuthRoute = req.nextUrl.pathname.startsWith("/sign-in");
-  const isProtectedRoute = req.nextUrl.pathname.startsWith("/dashboard");
+  const isProtectedRoute = req.nextUrl.pathname === "/";
 
   // Redirect unauthenticated users to sign-in
   if (isProtectedRoute && !isAuthenticated) {
@@ -13,7 +13,7 @@ export default auth((req) => {
 
   // Redirect authenticated users away from sign-in
   if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    return NextResponse.redirect(new URL("/", req.url));
   }
 
   // Check for token refresh errors and force re-authentication
