@@ -99,9 +99,32 @@ export interface PullRequestEventPayload {
 }
 
 /**
+ * GitHub App installation object from webhook payloads
+ */
+export interface GitHubWebhookInstallation {
+  id: number;
+  account: {
+    id: number;
+    login: string;
+    type: "User" | "Organization";
+  };
+  app_id: number;
+  target_type: "User" | "Organization";
+}
+
+/**
+ * Installation event payload from GitHub webhook
+ */
+export interface InstallationEventPayload {
+  action: "created" | "deleted" | "suspend" | "unsuspend" | "new_permissions_accepted";
+  installation: GitHubWebhookInstallation;
+  sender: GitHubWebhookUser;
+}
+
+/**
  * Union of supported webhook payloads
  */
-export type WebhookPayload = IssueEventPayload | PullRequestEventPayload;
+export type WebhookPayload = IssueEventPayload | PullRequestEventPayload | InstallationEventPayload;
 
 /**
  * Affected user with column type and card data
@@ -113,7 +136,7 @@ export interface AffectedUser {
 }
 
 /**
- * Parsed webhook event result
+ * Parsed webhook event result for issue/PR events
  */
 export interface ParsedWebhookEvent {
   eventType: "issues" | "pull_request";
@@ -123,6 +146,15 @@ export interface ParsedWebhookEvent {
     owner: string;
     name: string;
   };
+}
+
+/**
+ * Parsed installation event result
+ */
+export interface ParsedInstallationEvent {
+  eventType: "installation";
+  action: "deleted";
+  installationId: number;
 }
 
 /**

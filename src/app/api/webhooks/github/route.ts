@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createRequestLogger } from "@/lib/logging/logger";
 import { validateWebhookSignature } from "@/lib/webhooks/validateSignature";
-import { getEventType, parseWebhookEvent, isSupportedEvent } from "@/lib/webhooks/eventParser";
+import {
+  getEventType,
+  parseWebhookEvent,
+  parseInstallationEvent,
+  isSupportedEvent,
+  isInstallationEvent,
+} from "@/lib/webhooks/eventParser";
 import { connectionManager } from "@/lib/webhooks/connectionManager";
+import { deleteInstallationById } from "@/lib/redis";
 import type { WebhookPayload, WebhookProcessingResult } from "@/lib/webhooks/types";
 
 // Webhooks are always dynamic - never cache or prerender
@@ -113,7 +120,43 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       );
     }
 
-    // 7. Parse the webhook event and extract affected users
+    // 7. Handle installation events (deletion cleanup)
+    if (parsedEventType === "installation" && isInstallationEvent(payload)) {
+      const installationEvent = parseInstallationEvent(payload);
+
+      if (installationEvent) {
+        const deletedUserId = await deleteInstallationById(installationEvent.installationId);
+
+        log.info("Installation deleted, cleaned up KV data", {
+          installationId: installationEvent.installationId,
+          deletedUserId: deletedUserId ?? "not found",
+          deliveryId,
+          duration: Date.now() - startTime,
+        });
+
+        return NextResponse.json(
+          {
+            success: true,
+            eventsProcessed: 1,
+            affectedUsers: deletedUserId ? [deletedUserId] : [],
+          },
+          {
+            status: 200,
+            headers: {
+              "X-Request-Id": requestId,
+            },
+          },
+        );
+      }
+    }
+
+    // 8. Parse the webhook event and extract affected users (issues/pull_request only)
+    // Installation events are already handled above, so at this point we only have issues/pull_request
+    if (parsedEventType === "installation") {
+      // Should not reach here - installation events are handled above
+      return NextResponse.json({ success: true, eventsProcessed: 0, affectedUsers: [] }, { status: 200 });
+    }
+
     const parsedEvent = parseWebhookEvent(parsedEventType, payload);
 
     if (!parsedEvent) {
@@ -134,7 +177,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       );
     }
 
-    // 8. Log the parsed event details
+    // 9. Log the parsed event details
     const affectedUserIds = parsedEvent.affectedUsers.map((u) => u.githubUserId);
 
     log.info("Webhook event processed", {
@@ -146,7 +189,7 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       duration: Date.now() - startTime,
     });
 
-    // 9. Broadcast to SSE connections
+    // 10. Broadcast to SSE connections
     const sseConnectionsNotified = connectionManager.broadcastToAffectedUsers(parsedEvent.affectedUsers);
 
     log.info("SSE broadcast complete", {

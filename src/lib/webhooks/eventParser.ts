@@ -1,10 +1,12 @@
 import type { CardData, CardStatus, CardLabel } from "@/types/card";
 import type {
   ParsedWebhookEvent,
+  ParsedInstallationEvent,
   AffectedUser,
   WebhookPayload,
   IssueEventPayload,
   PullRequestEventPayload,
+  InstallationEventPayload,
   GitHubWebhookIssue,
   GitHubWebhookPullRequest,
   GitHubWebhookRepository,
@@ -16,13 +18,19 @@ import type {
 const SUPPORTED_EVENTS: Record<string, string[]> = {
   issues: ["opened", "assigned"],
   pull_request: ["opened", "review_requested"],
+  installation: ["deleted"],
 };
+
+/**
+ * Event types that we handle
+ */
+export type SupportedEventType = "issues" | "pull_request" | "installation";
 
 /**
  * Detect event type from X-GitHub-Event header
  */
-export function getEventType(eventHeader: string | null): "issues" | "pull_request" | null {
-  if (eventHeader === "issues" || eventHeader === "pull_request") {
+export function getEventType(eventHeader: string | null): SupportedEventType | null {
+  if (eventHeader === "issues" || eventHeader === "pull_request" || eventHeader === "installation") {
     return eventHeader;
   }
   return null;
@@ -180,6 +188,28 @@ function isIssueEvent(payload: WebhookPayload): payload is IssueEventPayload {
  */
 function isPullRequestEvent(payload: WebhookPayload): payload is PullRequestEventPayload {
   return "pull_request" in payload;
+}
+
+/**
+ * Type guard to check if payload is an installation event
+ */
+export function isInstallationEvent(payload: WebhookPayload): payload is InstallationEventPayload {
+  return "installation" in payload && !("issue" in payload) && !("pull_request" in payload);
+}
+
+/**
+ * Parse an installation event (specifically deletion)
+ */
+export function parseInstallationEvent(payload: InstallationEventPayload): ParsedInstallationEvent | null {
+  if (payload.action !== "deleted") {
+    return null;
+  }
+
+  return {
+    eventType: "installation",
+    action: "deleted",
+    installationId: payload.installation.id,
+  };
 }
 
 /**

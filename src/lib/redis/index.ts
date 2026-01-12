@@ -1,2 +1,8 @@
 export { getRedisClient, closeRedisClient } from "./client";
-export { setInstallation, getInstallation, deleteInstallation } from "./installations";
+export {
+  setInstallation,
+  getInstallation,
+  getUserByInstallation,
+  deleteInstallation,
+  deleteInstallationById,
+} from "./installations";
