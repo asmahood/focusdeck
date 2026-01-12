@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { createRequestLogger } from "@/lib/logging/logger";
 import { validateWebhookSignature } from "@/lib/webhooks/validateSignature";
 import { getEventType, parseWebhookEvent, isSupportedEvent } from "@/lib/webhooks/eventParser";
+import { connectionManager } from "@/lib/webhooks/connectionManager";
 import type { WebhookPayload, WebhookProcessingResult } from "@/lib/webhooks/types";
 
 // Webhooks are always dynamic - never cache or prerender
@@ -145,19 +146,14 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       duration: Date.now() - startTime,
     });
 
-    // 9. Log individual card data for each affected user (for debugging)
-    for (const affectedUser of parsedEvent.affectedUsers) {
-      log.debug("Card data for affected user", {
-        githubUserId: affectedUser.githubUserId,
-        columnType: affectedUser.columnType,
-        cardId: affectedUser.cardData.id,
-        cardTitle: affectedUser.cardData.title,
-        cardNumber: affectedUser.cardData.number,
-      });
-    }
+    // 9. Broadcast to SSE connections
+    const sseConnectionsNotified = connectionManager.broadcastToAffectedUsers(parsedEvent.affectedUsers);
 
-    // TODO: Phase 4 - Broadcast to SSE connections
-    // await broadcastToUsers(parsedEvent.affectedUsers);
+    log.info("SSE broadcast complete", {
+      affectedUsers: affectedUserIds,
+      sseConnectionsNotified,
+      deliveryId,
+    });
 
     return NextResponse.json(
       {

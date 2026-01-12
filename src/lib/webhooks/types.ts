@@ -142,3 +142,25 @@ export interface WebhookProcessingResult {
   affectedUsers: string[];
   error?: string;
 }
+
+/**
+ * SSE message for new item events
+ */
+export interface SSENewItemMessage {
+  type: "new-item";
+  columnType: ColumnType;
+  item: CardData;
+}
+
+/**
+ * SSE message for heartbeat events
+ */
+export interface SSEHeartbeatMessage {
+  type: "heartbeat";
+  timestamp: number;
+}
+
+/**
+ * Union of all SSE message types
+ */
+export type SSEMessage = SSENewItemMessage | SSEHeartbeatMessage;
