@@ -12,6 +12,79 @@
 import "@testing-library/jest-dom";
 
 /**
+ * Mock EventSource for SSE tests
+ *
+ * EventSource is a browser API not available in Node/Jest.
+ * This mock provides a minimal implementation for testing.
+ */
+class MockEventSource {
+  url: string;
+  readyState: number = 0;
+  onopen: ((this: EventSource, ev: Event) => unknown) | null = null;
+  onerror: ((this: EventSource, ev: Event) => unknown) | null = null;
+  onmessage: ((this: EventSource, ev: MessageEvent) => unknown) | null = null;
+
+  private listeners: Map<string, EventListener[]> = new Map();
+
+  static readonly CONNECTING = 0;
+  static readonly OPEN = 1;
+  static readonly CLOSED = 2;
+
+  constructor(url: string) {
+    this.url = url;
+    // Simulate successful connection after a tick
+    setTimeout(() => {
+      this.readyState = MockEventSource.OPEN;
+      if (this.onopen) {
+        this.onopen.call(this as unknown as EventSource, new Event("open"));
+      }
+    }, 0);
+  }
+
+  addEventListener(type: string, listener: EventListener) {
+    const existing = this.listeners.get(type) || [];
+    existing.push(listener);
+    this.listeners.set(type, existing);
+  }
+
+  removeEventListener(type: string, listener: EventListener) {
+    const existing = this.listeners.get(type) || [];
+    this.listeners.set(
+      type,
+      existing.filter((l) => l !== listener),
+    );
+  }
+
+  dispatchEvent(event: Event): boolean {
+    const listeners = this.listeners.get(event.type) || [];
+    listeners.forEach((listener) => listener(event));
+    return true;
+  }
+
+  close() {
+    this.readyState = MockEventSource.CLOSED;
+  }
+
+  // Helper method for tests to simulate receiving messages
+  __simulateMessage(type: string, data: string) {
+    const event = new MessageEvent(type, { data });
+    const listeners = this.listeners.get(type) || [];
+    listeners.forEach((listener) => listener(event));
+  }
+
+  // Helper method for tests to simulate errors
+  __simulateError() {
+    this.readyState = MockEventSource.CLOSED;
+    if (this.onerror) {
+      this.onerror.call(this as unknown as EventSource, new Event("error"));
+    }
+  }
+}
+
+// Assign to global
+global.EventSource = MockEventSource as unknown as typeof EventSource;
+
+/**
  * MSW (Mock Service Worker) Setup
  *
  * MSW is available for tests that need to mock API requests, but it's NOT

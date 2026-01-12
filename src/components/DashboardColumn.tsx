@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useCallback, useEffect, useRef } from "react";
 import { CardColumn } from "./CardColumn";
 import { Card } from "./Card";
 import { ErrorState } from "./ErrorState";
@@ -10,7 +11,9 @@ import { useIssuesCreated } from "@/hooks/useIssuesCreated";
 import { useIssuesAssigned } from "@/hooks/useIssuesAssigned";
 import { usePullRequests } from "@/hooks/usePullRequests";
 import { useReviewRequests } from "@/hooks/useReviewRequests";
+import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
 import { FetchResult } from "@/lib/fetchers/types";
+import type { CardData } from "@/types/card";
 
 interface DashboardColumnProps {
   title: string;
@@ -18,7 +21,16 @@ interface DashboardColumnProps {
   columnType: "issues-created" | "issues-assigned" | "prs" | "reviews";
 }
 
+/** Duration of the highlight animation in milliseconds */
+const HIGHLIGHT_DURATION_MS = 2000;
+
 export function DashboardColumn({ title, initialData, columnType }: DashboardColumnProps) {
+  // Track newly added items for highlight animation
+  const [highlightedIds, setHighlightedIds] = useState<Set<string>>(new Set());
+
+  // Track highlight timeouts for cleanup
+  const highlightTimeoutsRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
+
   // Hook selection based on column type
   const hookMap = {
     "issues-created": useIssuesCreated,
@@ -28,8 +40,43 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
   };
 
   const useColumnData = hookMap[columnType as keyof typeof hookMap] || useIssuesCreated;
-  const { items, totalCount, pageInfo, isLoading, error, loadMore } = useColumnData({
+  const { items, totalCount, pageInfo, isLoading, error, loadMore, prependItem } = useColumnData({
     initialData,
+  });
+
+  // Handle new items from SSE
+  const handleNewItem = useCallback(
+    (item: CardData) => {
+      prependItem(item);
+
+      // Clear existing timeout for this item if any (handles rapid updates)
+      const existingTimeout = highlightTimeoutsRef.current.get(item.id);
+      if (existingTimeout) {
+        clearTimeout(existingTimeout);
+      }
+
+      // Add to highlighted set
+      setHighlightedIds((prev) => new Set([...prev, item.id]));
+
+      // Remove highlight after animation completes
+      const timeoutId = setTimeout(() => {
+        setHighlightedIds((prev) => {
+          const next = new Set(prev);
+          next.delete(item.id);
+          return next;
+        });
+        highlightTimeoutsRef.current.delete(item.id);
+      }, HIGHLIGHT_DURATION_MS);
+
+      highlightTimeoutsRef.current.set(item.id, timeoutId);
+    },
+    [prependItem],
+  );
+
+  // Subscribe to real-time updates
+  useRealtimeUpdates({
+    columnType,
+    onNewItem: handleNewItem,
   });
 
   const { sentinelRef } = useInfiniteScroll({
@@ -37,6 +84,15 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
     isLoading,
     onLoadMore: loadMore,
   });
+
+  // Cleanup highlight timeouts on unmount
+  useEffect(() => {
+    const timeouts = highlightTimeoutsRef.current;
+    return () => {
+      timeouts.forEach(clearTimeout);
+      timeouts.clear();
+    };
+  }, []);
 
   // Show initial loading state
   if (items.length === 0 && isLoading) {
@@ -101,15 +157,20 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
 
   return (
     <CardColumn title={title} count={totalCount}>
-      {items.map((card, index) => (
-        <div
-          key={card.id}
-          className={index < 10 ? "animate-fadeIn" : ""}
-          style={index < 10 ? { animationDelay: `${index * 50}ms` } : undefined}
-        >
-          <Card data={card} />
-        </div>
-      ))}
+      {items.map((card, index) => {
+        const isHighlighted = highlightedIds.has(card.id);
+        const shouldFadeIn = index < 10 && !isHighlighted;
+
+        return (
+          <div
+            key={card.id}
+            className={`${shouldFadeIn ? "animate-fadeIn" : ""} ${isHighlighted ? "animate-highlight rounded-lg" : ""}`}
+            style={shouldFadeIn ? { animationDelay: `${index * 50}ms` } : undefined}
+          >
+            <Card data={card} />
+          </div>
+        );
+      })}
 
       {/* Infinite scroll sentinel */}
       {pageInfo.hasNextPage && (

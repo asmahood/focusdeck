@@ -36,6 +36,40 @@ export function usePullRequests({ initialData }: UsePullRequestsProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
 
+  // Track item IDs for deduplication (ref avoids stale closure issues)
+  const itemIdsRef = useRef<Set<string>>(new Set(initialData.items.map((i) => i.id)));
+
+  // Keep ref in sync with items state
+  useEffect(() => {
+    itemIdsRef.current = new Set(items.map((i) => i.id));
+  }, [items]);
+
+  /**
+   * Prepend a new item to the list for real-time updates.
+   * If the item already exists, it will be hoisted to the top with updated data.
+   *
+   * @param item - The card data to prepend or hoist
+   */
+  const prependItem = useCallback((item: CardData) => {
+    const isExisting = itemIdsRef.current.has(item.id);
+
+    setItems((prev) => {
+      if (isExisting) {
+        // Item exists - remove from current position and prepend with updated data
+        const filtered = prev.filter((existing) => existing.id !== item.id);
+        return [item, ...filtered];
+      }
+      // New item - prepend
+      return [item, ...prev];
+    });
+
+    // Only increment count for truly new items
+    if (!isExisting) {
+      setTotalCount((prev) => prev + 1);
+      itemIdsRef.current.add(item.id);
+    }
+  }, []);
+
   // Refs to prevent stale closures and race conditions
   const loadingRef = useRef(false);
   const sequenceRef = useRef(0);
@@ -124,8 +158,9 @@ export function usePullRequests({ initialData }: UsePullRequestsProps) {
       isLoading,
       error,
       loadMore,
+      prependItem,
     }),
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadMore is stable via useCallback, excluding to prevent circular dependency
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- loadMore and prependItem are stable via useCallback, excluding to prevent circular dependency
     [items, totalCount, pageInfo, isLoading, error],
   );
 }
