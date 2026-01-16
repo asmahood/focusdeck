@@ -19,7 +19,7 @@ export async function fetchIssuesCreated(options: FetchOptions = {}): Promise<Fe
       throw createAppError("GRAPHQL_ERROR", `GraphQL errors: ${errors.map((e) => e.message).join(", ")}`, true);
     }
 
-    const edges = data.viewer.issues.edges ?? [];
+    const edges = data.search.edges ?? [];
     const items = edges
       .map((edge) => edge?.node)
       .filter((node): node is NonNullable<typeof node> => node !== null)
@@ -27,10 +27,10 @@ export async function fetchIssuesCreated(options: FetchOptions = {}): Promise<Fe
 
     return {
       items,
-      totalCount: data.viewer.issues.totalCount,
+      totalCount: data.search.issueCount ?? 0,
       pageInfo: {
-        hasNextPage: data.viewer.issues.pageInfo.hasNextPage,
-        endCursor: data.viewer.issues.pageInfo.endCursor ?? null,
+        hasNextPage: data.search.pageInfo.hasNextPage,
+        endCursor: data.search.pageInfo.endCursor ?? null,
       },
     };
   } catch (error) {

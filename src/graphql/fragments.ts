@@ -12,6 +12,7 @@ export const RepositoryFragment = gql(`
   fragment RepositoryFields on Repository {
     id
     name
+    isArchived
     owner {
       login
     }
