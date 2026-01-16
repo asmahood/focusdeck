@@ -1,7 +1,10 @@
+"use client";
+
 import type { FC } from "react";
 import { BrandLogo } from "./BrandLogo";
 import { UserAvatar } from "./UserAvatar";
 import { SettingsDropdown } from "./SettingsDropdown";
+import { ConnectionStatus } from "./ConnectionStatus";
 
 interface DashboardHeaderProps {
   user: {
@@ -19,6 +22,7 @@ export const DashboardHeader: FC<DashboardHeaderProps> = ({ user }) => {
 
       {/* Right: User section with settings */}
       <div className="flex items-center gap-3">
+        <ConnectionStatus />
         <SettingsDropdown />
         <UserAvatar name={user.name} image={user.image} />
       </div>

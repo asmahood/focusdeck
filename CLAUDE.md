@@ -108,6 +108,66 @@ Required in `.env.local`:
 - `AUTH_GITHUB_SECRET` - GitHub OAuth App Client Secret
 - `AUTH_SECRET` - NextAuth.js secret for session encryption
 
+For real-time webhook updates (optional):
+
+- `GITHUB_APP_ID` - GitHub App ID (from GitHub App settings)
+- `GITHUB_WEBHOOK_SECRET` - Secret for webhook signature validation
+- `GITHUB_PRIVATE_KEY` - GitHub App private key (PEM format)
+- `KV_REST_API_URL` - Vercel KV REST API URL
+- `KV_REST_API_TOKEN` - Vercel KV REST API token
+
+## Real-Time Updates (Webhooks + SSE)
+
+FocusDeck supports real-time updates via GitHub App webhooks and Server-Sent Events (SSE).
+
+### GitHub App Setup
+
+1. Go to GitHub Settings → Developer settings → GitHub Apps → New GitHub App
+2. Configure the app:
+   - **App Name:** FocusDeck
+   - **Homepage URL:** Your app's URL
+   - **Webhook URL:** `https://your-domain.com/api/webhooks/github`
+   - **Webhook Secret:** Generate a strong secret
+3. Set permissions:
+   - Repository: Issues (Read-only), Pull requests (Read-only), Metadata (Read-only)
+   - Organization: Members (Read-only)
+4. Subscribe to events: Issues, Pull request, Pull request review
+5. Generate and download a private key (.pem file)
+6. Add environment variables to `.env.local`
+
+### Vercel KV Setup
+
+1. Create a KV store in Vercel dashboard
+2. Link your project: `vercel link`
+3. Pull environment variables: `vercel env pull .env.local`
+
+### Local Development with Webhooks
+
+For local webhook testing, use a tunnel service:
+
+```bash
+# Using ngrok
+ngrok http 3000
+
+# Update webhook URL in GitHub App settings to ngrok URL
+```
+
+### Architecture
+
+- **Webhook Endpoint:** `/api/webhooks/github` - Receives GitHub events, validates signatures, broadcasts to SSE
+- **SSE Endpoint:** `/api/sse` - Long-lived connections for real-time client updates
+- **Health Endpoint:** `/api/health` - System health and webhook metrics
+- **Connection Manager:** `src/lib/webhooks/connectionManager.ts` - Manages SSE connections (max 5 per user)
+- **SSE Context:** `src/contexts/SSEContext.tsx` - Shared SSE connection for all dashboard columns
+
+### Monitoring
+
+The `/api/health` endpoint provides:
+
+- SSE connection statistics
+- Webhook delivery metrics (success rate, latency)
+- Overall system health status
+
 ## Key Technical Details
 
 - Next.js App Router with Server Components

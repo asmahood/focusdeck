@@ -1,15 +1,18 @@
 export { CardColumn } from "./CardColumn";
 export { Card } from "./Card";
 export { DashboardColumn } from "./DashboardColumn";
+export { DashboardContent } from "./DashboardContent";
 export { SkeletonCard } from "./SkeletonCard";
 export { EmptyState } from "./EmptyState";
 export { ErrorState } from "./ErrorState";
+export { SSEErrorBoundary } from "./SSEErrorBoundary";
 
 // Dashboard header components
 export { DashboardHeader } from "./DashboardHeader";
 export { SettingsDropdown } from "./SettingsDropdown";
 export { UserAvatar } from "./UserAvatar";
 export { InstallationStatus } from "./InstallationStatus";
+export { ConnectionStatus } from "./ConnectionStatus";
 
 // Sign-in components
 export { SignInButton } from "./SignInButton";

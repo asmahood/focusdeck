@@ -9,6 +9,7 @@ import {
   isInstallationEvent,
 } from "@/lib/webhooks/eventParser";
 import { connectionManager } from "@/lib/webhooks/connectionManager";
+import { webhookMetrics } from "@/lib/webhooks/metrics";
 import { deleteInstallationById } from "@/lib/redis";
 import type { WebhookPayload, WebhookProcessingResult } from "@/lib/webhooks/types";
 
@@ -56,6 +57,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
         deliveryId,
       });
 
+      webhookMetrics.record({
+        eventType: eventType || "unknown",
+        action: "signature_failed",
+        success: false,
+        duration: Date.now() - startTime,
+        affectedUsers: 0,
+        sseConnectionsNotified: 0,
+        error: "Invalid signature",
+      });
+
       return NextResponse.json(
         {
           success: false,
@@ -89,6 +100,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       payload = JSON.parse(rawBody) as WebhookPayload;
     } catch {
       log.warn("Invalid JSON payload", { deliveryId });
+
+      webhookMetrics.record({
+        eventType: parsedEventType,
+        action: "parse_failed",
+        success: false,
+        duration: Date.now() - startTime,
+        affectedUsers: 0,
+        sseConnectionsNotified: 0,
+        error: "Invalid JSON",
+      });
 
       return NextResponse.json(
         {
@@ -198,6 +219,16 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
       deliveryId,
     });
 
+    // Record successful delivery metrics
+    webhookMetrics.record({
+      eventType: parsedEvent.eventType,
+      action: parsedEvent.action,
+      success: true,
+      duration: Date.now() - startTime,
+      affectedUsers: parsedEvent.affectedUsers.length,
+      sseConnectionsNotified,
+    });
+
     return NextResponse.json(
       {
         success: true,
@@ -213,10 +244,22 @@ export async function POST(request: NextRequest): Promise<NextResponse<WebhookPr
     );
   } catch (error) {
     const duration = Date.now() - startTime;
+    const errorMessage = error instanceof Error ? error.message : "Unknown error";
 
     log.error("Webhook processing failed", {
       duration,
-      error: error instanceof Error ? error.message : "Unknown error",
+      error: errorMessage,
+    });
+
+    // Record failed delivery metrics
+    webhookMetrics.record({
+      eventType: "unknown",
+      action: "unknown",
+      success: false,
+      duration,
+      affectedUsers: 0,
+      sseConnectionsNotified: 0,
+      error: errorMessage,
     });
 
     return NextResponse.json(

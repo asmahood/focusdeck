@@ -11,7 +11,7 @@ import { useIssuesCreated } from "@/hooks/useIssuesCreated";
 import { useIssuesAssigned } from "@/hooks/useIssuesAssigned";
 import { usePullRequests } from "@/hooks/usePullRequests";
 import { useReviewRequests } from "@/hooks/useReviewRequests";
-import { useRealtimeUpdates } from "@/hooks/useRealtimeUpdates";
+import { useSSESubscription } from "@/contexts/SSEContext";
 import { FetchResult } from "@/lib/fetchers/types";
 import type { CardData } from "@/types/card";
 
@@ -73,11 +73,8 @@ export function DashboardColumn({ title, initialData, columnType }: DashboardCol
     [prependItem],
   );
 
-  // Subscribe to real-time updates
-  useRealtimeUpdates({
-    columnType,
-    onNewItem: handleNewItem,
-  });
+  // Subscribe to real-time updates via shared SSE context
+  useSSESubscription(columnType, handleNewItem);
 
   const { sentinelRef } = useInfiniteScroll({
     hasNextPage: pageInfo.hasNextPage,
