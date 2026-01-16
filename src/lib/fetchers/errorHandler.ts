@@ -15,7 +15,12 @@ import { createAppError } from "@/types/errors";
 export function handleGraphQLError(error: unknown): never {
   if (error instanceof Error) {
     // Check for authentication errors
-    if (error.message.includes("401") || error.message.includes("Unauthorized")) {
+    if (
+      error.message.includes("401") ||
+      error.message.includes("Unauthorized") ||
+      error.message.includes("No access token available") ||
+      error.message.includes("re-authentication required")
+    ) {
       throw createAppError("AUTH_ERROR", "Authentication failed", false);
     }
 

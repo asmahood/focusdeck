@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "npm run codegen:compile && next dev --turbopack",
+    "tunnel": "ngrok http 3000 --log=stdout --log-format=json > /dev/null & sleep 2 && curl -s http://localhost:4040/api/tunnels | grep -o 'https://[^\"]*'",
     "build": "npm run codegen:compile && next build",
     "start": "next start",
     "lint": "next lint",

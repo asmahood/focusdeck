@@ -3,6 +3,7 @@ import { fetchIssuesCreated, fetchIssuesAssigned, fetchPullRequests, fetchReview
 import { FetchResult } from "@/lib/fetchers/types";
 import { auth } from "@/auth";
 import { redirect } from "next/navigation";
+import { AppError } from "@/types/errors";
 
 export default async function HomePage() {
   // Get session for header user info
@@ -14,25 +15,33 @@ export default async function HomePage() {
   }
 
   // Fetch initial data server-side with error handling
-  const [issuesCreatedData, issuesAssignedData, pullRequestsData, reviewRequestsData] = await Promise.allSettled([
+  const results = await Promise.allSettled([
     fetchIssuesCreated({ first: 20 }),
     fetchIssuesAssigned({ first: 20 }),
     fetchPullRequests({ first: 20 }),
     fetchReviewRequests({ first: 20 }),
-  ]).then((results) => {
-    const emptyResult: FetchResult = {
-      items: [],
-      totalCount: 0,
-      pageInfo: { hasNextPage: false, endCursor: null },
-    };
+  ]);
 
-    return [
-      results[0].status === "fulfilled" ? results[0].value : emptyResult,
-      results[1].status === "fulfilled" ? results[1].value : emptyResult,
-      results[2].status === "fulfilled" ? results[2].value : emptyResult,
-      results[3].status === "fulfilled" ? results[3].value : emptyResult,
-    ];
-  });
+  // Check if any fetch failed with an auth error - if so, redirect to sign-in
+  const authError = results.find(
+    (result) => result.status === "rejected" && (result.reason as AppError)?.type === "AUTH_ERROR",
+  );
+  if (authError) {
+    redirect("/sign-in");
+  }
+
+  const emptyResult: FetchResult = {
+    items: [],
+    totalCount: 0,
+    pageInfo: { hasNextPage: false, endCursor: null },
+  };
+
+  const [issuesCreatedData, issuesAssignedData, pullRequestsData, reviewRequestsData] = [
+    results[0].status === "fulfilled" ? results[0].value : emptyResult,
+    results[1].status === "fulfilled" ? results[1].value : emptyResult,
+    results[2].status === "fulfilled" ? results[2].value : emptyResult,
+    results[3].status === "fulfilled" ? results[3].value : emptyResult,
+  ];
 
   return (
     <DashboardContent>

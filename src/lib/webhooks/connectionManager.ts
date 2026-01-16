@@ -247,6 +247,7 @@ class ConnectionManager {
     }
 
     const message = this.formatSSEMessage("new-item", {
+      type: "new-item",
       columnType,
       item,
     });
@@ -355,5 +356,15 @@ class ConnectionManager {
 
 /**
  * Singleton instance of the connection manager
+ * Uses globalThis to ensure the same instance is shared across all API routes
+ * (Next.js can create separate module instances for different routes)
  */
-export const connectionManager = new ConnectionManager();
+const globalForConnectionManager = globalThis as unknown as {
+  connectionManager: ConnectionManager | undefined;
+};
+
+export const connectionManager = globalForConnectionManager.connectionManager ?? new ConnectionManager();
+
+if (!globalForConnectionManager.connectionManager) {
+  globalForConnectionManager.connectionManager = connectionManager;
+}
